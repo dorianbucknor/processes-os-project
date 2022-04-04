@@ -1,5 +1,7 @@
 package OperatingSystems;
 
+import java.util.HashMap;
+import java.util.Optional;
 import java.util.Random;
 import java.time.LocalTime;
 
@@ -20,23 +22,56 @@ public class Process {
     private LocalTime endTime;
     private int blockedTime;
     private int burstTime;
+    private String task = "none";
 
 
-    public Process( int priority, int burstTime) {
+    public Process(int priority) {
         this.pid = getRandomInt(1, 20);
         this.priority = priority;
         this.burstTime = getRandomInt(1, 5);
         this.startTime = LocalTime.now();
+        arrivalTime = getRandomInt(0, 29);
     }
-    private int getRandomInt(int min, int max){
+
+    private int getRandomInt(int min, int max) {
         Random random = new Random();
-        return random.nextInt(max + 1 - min) + min;
+        return random.nextInt(min, max + 1);
     }
 
-    public void AddRecord (int data, Resource resource){
-
+    public void end(){
+        endTime = LocalTime.now();
     }
 
+    public void asignTask(Resources resources){
+        switch (getRandomInt(1, 4)) {
+            case 1 -> AddRecord(resources);
+            case 2 -> delete(resources);
+            case 3 -> retrieve(resources);
+            case 4 -> calculate(resources);
+        }
+    }
+
+    public void AddRecord(Resources resources) {
+        task = "add";
+        resources.add(new Resource(getRandomInt(1, 20), getRandomInt(1, 100)));
+    }
+
+    public void delete(Resources resources) {
+        task = "remove";
+        resources.remove(new Resource(0, getRandomInt(1, 20)));
+    }
+
+    public void retrieve(Resources resources) {
+        task = "retrieve";
+        Resource resource = resources.getResource(getRandomInt(1, 20));
+        System.out.println("Resource Id: " + resource.getId() + " - Resource Data: " + resource.getData());
+    }
+
+    public void calculate(Resources resources) {
+        task = "calculate";
+        resources.getResources().values().stream().reduce(Integer::sum).ifPresent(total -> System.out.println("Total" +
+                " Value: " + total));
+    }
 
     public int getPid() {
         return pid;
@@ -44,6 +79,10 @@ public class Process {
 
     public int getPriority() {
         return priority;
+    }
+
+    public String getTask() {
+        return task;
     }
 
     public int getArrivalTime() {
@@ -93,5 +132,4 @@ public class Process {
     public void setBurstTime(int burstTime) {
         this.burstTime = burstTime;
     }
-
 }
