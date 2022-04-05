@@ -1,30 +1,44 @@
 package OperatingSystems;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
 public class Scheduler {
-    PriorityQueue<Process> processes = new PriorityQueue<>(20, queueComparator());
-    Resources sharedResources;
+    PriorityQueue<Process> processQueue = new PriorityQueue<>(20, queueComparator());
 
-    Scheduler(Resources resources){
-        for (int i = 0; i < 20; i++) {
-            processes.add(new Process(i));
-        }
-        sharedResources = resources;
-    }
+    Resources sharedResources = new Resources();
 
+
+    /**
+     * Runs process scheduler. Assigns all processes with a task
+     */
     public void run(){
-        if(sharedResources == null){
-            return;
+        if(!sharedResources.resources.isEmpty()){ //if there are no resources do nothing
+            processQueue.forEach(process -> {
+                    process.executeTask(sharedResources);
+            });
         }
-        processes.forEach(process -> process.asignTask(sharedResources));
     }
 
 
+    public void addProcess(Process newProcess){
+        processQueue.add(newProcess);
+    }
 
+    public boolean removeProcess(Process process){
+        return  processQueue.remove(process);
+    }
+
+    /**
+     * Tells priority queue how to order processes
+     * @return comparator
+     */
     Comparator<Process> queueComparator (){
-        return Comparator.comparingInt(Process::getPriority);
+        return new Comparator<Process>() {
+            @Override
+            public int compare(Process p1, Process p2) {
+                return p1.getPriority() - p2.getPriority(); //sort in ascending order by priority
+            }
+        };
     }
 }

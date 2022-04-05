@@ -2,14 +2,25 @@ package OperatingSystems;
 
 import java.util.HashMap;
 
+//Data Structure for resources list
+//The shared resource list (list of integer pairs) can hold up to twenty (20) records which contains:
+//        i.	Id (sequential list between 1 and 20)
+//        ii.	Data value (integer )
+
 public class Resources {
-    HashMap<Integer, Integer> resources = new HashMap<>();
+    /**
+     * List of shared resources as a map
+     */
+    HashMap<Integer, Integer> resources = new HashMap<>(20);
+
 
     Resources (){
+        //At the beginning of the program the shared resource list should initialize all data values to 0.
         for (int i = 0; i < 20; i++) {
             resources.put(i+1, 0);
         }
     }
+
 
     public HashMap<Integer, Integer> getResources() {
         return resources;
@@ -19,20 +30,33 @@ public class Resources {
         this.resources = resources;
     }
 
-    public void add(Resource resource){
-        resources.put(resource.getId(), resource.getData());
+    /**
+     * Adds new record to resources
+     * @param record the record to add
+     */
+    public void add(Record record){
+        resources.put(record.getId(), record.getData());
     }
 
-    public Resource getResource(int id){
+    /**
+     * Gets a record from resources
+     * @param id the record identifier
+     * @return the record found, null otherwise
+     */
+    public Record getRecord(int id){
         if(resources.size() > 0){
-            return new Resource(resources.get(id), id);
+            return new Record(resources.get(id), id);
         }
         return null;
     }
 
-    public void remove(Resource resource){
+    /**
+     * Removes a record from resources
+     * @param id identifier of record to remove
+     */
+    public void remove(int id){
         if(resources.size() > 0){
-           resources.replace(resource.getId(), resource.getData());
+           resources.replace(id, 0);
         }
     }
 

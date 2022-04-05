@@ -1,20 +1,20 @@
 package OperatingSystems;
 
-import java.util.HashMap;
-import java.util.Optional;
 import java.util.Random;
 import java.time.LocalTime;
 
+/**
+ * Class for Process Data Structure with data members specified below:
+ *  i.	 pid (uniquely assigned between 1 and 20)
+ * ii.	 task (a randomly select option of the four above)
+ * iii.  priority (integer value 1 – 5 with 1 being the highest)
+ * iv.	 arrival time (randomized number between 0 and 29)
+ * v.	 start time (system time)
+ * vi.	 end time (system time)
+ * vii.	 blocked time (numeric value)
+ * viii. burst time (randomized number between 1 and 5 seconds)`
+ */
 public class Process {
-//   ` i.	pid (uniquely assigned between 1 and 20)
-//            ii.	task (a randomly select option of the four above)
-//            iii.	priority (integer value 1 – 5 with 1 being the highest)
-//    iv.	arrival time (randomized number between 0 and 29)
-//    v.	start time (system time)
-//    vi.	end time (system time)
-//    vii.	blocked time (numeric value)
-//    viii.	burst time (randomized number between 1 to 5 seconds)`
-
     private int pid;
     private int priority;
     private int arrivalTime;
@@ -22,57 +22,126 @@ public class Process {
     private LocalTime endTime;
     private int blockedTime;
     private int burstTime;
-    private String task = "none";
+    private Task task = Task.NONE;
+    private State state;
 
-
-    public Process(int priority) {
-        this.pid = getRandomInt(1, 20);
-        this.priority = priority;
-        this.burstTime = getRandomInt(1, 5);
-        this.startTime = LocalTime.now();
-        arrivalTime = getRandomInt(0, 29);
+    /**
+     * Constructor for Process. Creates a new process object that has methods to read/write shared resources
+     * @param pid process id
+     */
+    public Process(int pid) {
+        this.pid = pid;
+        this.priority = getRandomInt(1, 5); //sets a random priority between and inclusive of 1 and 5
+        this.burstTime = getRandomInt(1, 5); // sets a random burst time between and inclusive of 1 and 5
+        this.startTime = LocalTime.now(); // sets start time to system time when process object was created
+        arrivalTime = getRandomInt(0, 29); // sets a random arrival time between and inclusive of 0 and 29
+        state = State.NEW;
+        System.out.println(this.toString());
     }
 
+    /**
+     * Generates a random integer between min and max, and inclusive of both min and max
+     * @param min minimum value
+     * @param max maximum value
+     * @return an integer between and inclusive of min and max value
+     */
     private int getRandomInt(int min, int max) {
         Random random = new Random();
         return random.nextInt(min, max + 1);
     }
 
-    public void end(){
-        endTime = LocalTime.now();
+    /**
+     * Ends this process
+     */
+    public void endProcess(){
+        task = Task.NONE;
+        state = State.TERMINATED;
     }
 
-    public void asignTask(Resources resources){
+    /**
+     * Randomly assigns a task to this process
+     */
+    public void assignTask(){
         switch (getRandomInt(1, 4)) {
-            case 1 -> AddRecord(resources);
-            case 2 -> delete(resources);
-            case 3 -> retrieve(resources);
-            case 4 -> calculate(resources);
+            case 1 -> task = Task.ADD;
+            case 2 -> task = Task.REMOVE;
+            case 3 -> task = Task.RETRIEVE;
+            case 4 -> task = Task.CALCULATE;
         }
+        state = State.READY;
     }
 
-    public void AddRecord(Resources resources) {
-        task = "add";
-        resources.add(new Resource(getRandomInt(1, 20), getRandomInt(1, 100)));
+    /**
+     * Task that adds a new resource to resources
+     * @param resources the shared resources to complete the task on
+     */
+    public synchronized void AddRecord(Resources resources) {
+        state = State.READY;
+        resources.add(new Record(getRandomInt(1, 20), getRandomInt(1, 100))); //gets a random resource and
+        // changes its value to an integer between and inclusive of 1 and 100
     }
 
-    public void delete(Resources resources) {
-        task = "remove";
-        resources.remove(new Resource(0, getRandomInt(1, 20)));
+    /**
+     * Task that removes a resource from shared resources by setting its value to 0
+     * @param resources the shared resources to complete the task on
+     */
+    public synchronized void delete(Resources resources) {
+        task = Task.REMOVE;//set the current task process is performing
+        resources.remove(getRandomInt(1, 20)); //gets a random resource
     }
 
+    /**
+     * Task that retrieves a resource from shared resources and output its data
+     * @param resources the shared resources to complete the task on
+     */
     public void retrieve(Resources resources) {
-        task = "retrieve";
-        Resource resource = resources.getResource(getRandomInt(1, 20));
-        System.out.println("Resource Id: " + resource.getId() + " - Resource Data: " + resource.getData());
+        task = Task.RETRIEVE;//set the current task process is performing
+        Record record = resources.getRecord(getRandomInt(1, 20)); //gets a random resource
+        System.out.println("Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
+        //output that resources data
     }
 
+    /**
+     * Task that calculates all the values of the shared resources and outputs the total value.
+     * @param resources the shared resources to complete the task on
+     */
     public void calculate(Resources resources) {
-        task = "calculate";
-        resources.getResources().values().stream().reduce(Integer::sum).ifPresent(total -> System.out.println("Total" +
+        task = Task.CALCULATE; //set the current task process is performing
+        //this is the same as looping through the list of data values and adding them to a variable and then
+        // printing the total
+        resources.getResources().values().stream().reduce(Integer::sum).ifPresent(total -> System.out.println(
+                "Total" +
                 " Value: " + total));
     }
 
+    /**
+     * Executes given task
+     * @param resources the shared resources to complete the task on
+     */
+    public void executeTask(Resources resources){
+        state = State.RUNNING;
+        System.out.println(this.toString());
+        switch (task){
+            case NONE -> {} //do nothing
+            case ADD -> AddRecord(resources);
+            case RETRIEVE -> retrieve(resources);
+            case REMOVE -> delete(resources);
+            case CALCULATE -> calculate(resources);
+        }
+        task = Task.NONE;
+        state = State.TERMINATED;
+        System.out.println(this.toString());
+    }
+
+    /**
+     * Checks if this process will modify the contents of the shared resources
+     * @return true if task is a modifying task, false otherwise
+     */
+    public boolean willModify(){
+        return task == Task.ADD || task == Task.REMOVE;
+    }
+
+    //Getters and setters
     public int getPid() {
         return pid;
     }
@@ -81,7 +150,7 @@ public class Process {
         return priority;
     }
 
-    public String getTask() {
+    public Task getTask() {
         return task;
     }
 
@@ -131,5 +200,53 @@ public class Process {
 
     public void setBurstTime(int burstTime) {
         this.burstTime = burstTime;
+    }
+
+    public void setTask(Task task) {
+        this.task = task;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    @Override
+    public String toString() {
+        return "Process{" +
+                "pid=" + pid +
+                ", priority=" + priority +
+                ", arrivalTime=" + arrivalTime +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", blockedTime=" + blockedTime +
+                ", burstTime=" + burstTime +
+                ", task=" + task +
+                ", state=" + state +
+                '}';
+    }
+
+    /**
+     * Task enum
+     */
+    public enum Task{
+        NONE,
+        ADD,
+        REMOVE,
+        RETRIEVE,
+        CALCULATE
+    }
+
+    public enum State {
+        NEW,
+        READY,
+        RUNNING,
+        WAITING,
+        SUSPENDED,
+        BLOCKED,
+        TERMINATED
     }
 }

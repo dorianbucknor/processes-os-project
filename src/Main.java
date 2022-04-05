@@ -1,13 +1,18 @@
-import OperatingSystems.Resource;
+import OperatingSystems.Process;
 import OperatingSystems.Scheduler;
-
-import java.util.ArrayList;
-import java.util.Collections;
 
 public class Main {
 
     public static void main(String[] args) {
-        // write your code here
+        Scheduler scheduler = new Scheduler();
 
+        //Create and add processes
+        for (int i = 0; i < 20; i++) {
+            Process process = new Process(i);
+            process.assignTask();
+            scheduler.addProcess(process);
+        }
+
+        scheduler.run();
     }
 }
