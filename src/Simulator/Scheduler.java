@@ -18,17 +18,26 @@ public class Scheduler {
      */
     public void run() {
         System.out.println("Started");
-        while (!processQueue.isEmpty()) {
+        while (processQueue.size() > 0){
             Process process = processQueue.poll();
-                if (core1.isIdle()) {
-                    core1.runProcess(process, sharedResources);
-                } else if (core2.isIdle()) {
+            if (core1.isIdle()) {
+                if(process.willModify() && processQueue.peek() != null){
+                    processQueue.peek().setState(Process.State.BLOCKED);
+                }
+                core1.runProcess(process, sharedResources);
+            } else {
+                if (core2.isIdle()) {
+                    if(process.willModify() && processQueue.peek() != null){
+                        processQueue.peek().setState(Process.State.BLOCKED);
+                    }
                     core2.runProcess(process, sharedResources);
                 } else {
-
+                    process.setState(Process.State.BLOCKED);
+                    processQueue.add(process);
                 }
-            //run();
+            }
         }
+
         System.out.println("Done");
     }
 
@@ -45,6 +54,7 @@ public class Scheduler {
     public String toString() {
         return "Scheduler{" +
                 "processQueue=" + processQueue.toString() +
+                "\nresources="+ sharedResources.toString()+
                 '}';
     }
 

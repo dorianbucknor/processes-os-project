@@ -69,7 +69,6 @@ public class Process {
             case 4 -> task = Task.CALCULATE;
         }
         state = State.READY;
-        System.out.println(task.toString());
     }
 
     /**
@@ -77,10 +76,11 @@ public class Process {
      * @param resources the shared resources to complete the task on
      */
     public void AddRecord(Resources resources) {
-        Record record = new Record(getRandomInt(1, 20), getRandomInt(1, 100)); //gets a random resource
-        System.out.println("Record Update:\n Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
+        Record record = resources.remove(getRandomInt(1, 20)); //gets a random resourcs
+        System.out.println("Record Update (ADD):\n\tResource Id: " + record.getId() + " - Resource Data: " + record.getData());
+        record.setData(getRandomInt(1, 100));
         resources.add(record); // changes its value to an integer between and inclusive of 1 and 100
-        System.out.println("Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
+        System.out.println("\tResource Id: " + record.getId() + " - Resource Data: " + record.getData());
     }
 
     /**
@@ -89,9 +89,9 @@ public class Process {
      */
     public void delete(Resources resources) {
         Record record = resources.getRecord(getRandomInt(1,20));
-        System.out.println("Record Update:\n Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
+        System.out.println("Record Update (REMOVE):\n\tResource Id: " + record.getId() + " - Resource Data: " + record.getData());
         resources.remove(record.getId());
-        System.out.println("Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
+        System.out.println("\tResource Id: " + record.getId() + " - Resource Data: " + record.getData());
     }
 
     /**
@@ -100,7 +100,7 @@ public class Process {
      */
     public void retrieve(Resources resources) {
         Record record = resources.getRecord(getRandomInt(1,20));
-        System.out.println("Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
+        System.out.println("RETRIEVE: \n\tResource Id: " + record.getId() + " - Resource Data: " + record.getData());
         //output that resources data
     }
 
@@ -112,16 +112,16 @@ public class Process {
         //this is the same as looping through the list of data values and adding them to a variable and then
         // printing the total
         resources.getResources().values().stream().reduce(Integer::sum).ifPresent(total -> System.out.println(
-                "Total" +
+                "\tTotal" +
                 " Value: " + total));
     }
 
     /**
      * Executes given task on current record
      */
-    public void executeTask(Resources resources){
+    public boolean executeTask(Resources resources){
         state = State.RUNNING;
-        System.out.println(this.toString());
+        System.out.println("\t" + this.toString());
         switch (task){
             case NONE -> {} //do nothing
             case ADD -> AddRecord(resources);
@@ -129,9 +129,11 @@ public class Process {
             case REMOVE -> delete(resources);
             case CALCULATE -> calculate(resources);
         }
-        //task = Task.NONE;
-        //state = State.TERMINATED;
-        System.out.println(this.toString());
+        task = Task.NONE;
+        state = State.TERMINATED;
+        endTime = LocalTime.now();
+        System.out.println("\t" + this.toString());
+        return true;
     }
 
     /**

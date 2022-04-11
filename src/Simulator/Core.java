@@ -1,46 +1,35 @@
 package Simulator;
 
-import java.time.LocalTime;
-import java.util.concurrent.*;
 
 public class Core {
     private String id;
     private boolean isIdle;
 
-    ScheduledExecutorService executorService;
+    Thread thread;
     Runnable runnable;
 
     Core(String id) {
         this.id = id;
         isIdle = true;
-        executorService = new ScheduledThreadPoolExecutor(1);
-
     }
 
     public void runProcess(Process process, Resources resources) {
-
-        ScheduledFuture<?> future;
-        if (process != null) {
-            isIdle = false;
-            runnable = new Runnable() {
-                @Override
-                public void run() {
-                    process.setStartTime(LocalTime.now());
-                    process.setState(Process.State.RUNNING);
-                    process.executeTask(resources);
-                }
-            };
-
-            future = executorService.scheduleWithFixedDelay(runnable, 0, process.getBurstTime(), TimeUnit.SECONDS);
-            isIdle = future.isDone();
-            //process.endProcess();
-        }
+        isIdle = false;
+        thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("\nRunning on Core" + id);
+                process.setState(Process.State.RUNNING);
+                isIdle = process.executeTask(resources);
+                System.out.println("Finished on Core" + id);
+            }
+        });
+        thread.start();
     }
 
     public String getId() {
         return id;
     }
-
 
     public boolean isIdle() {
         return isIdle;
