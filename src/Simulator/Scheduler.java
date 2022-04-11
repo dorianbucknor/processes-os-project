@@ -7,9 +7,9 @@ import java.util.Timer;
 
 public class Scheduler {
     PriorityQueue<Process> processQueue = new PriorityQueue<>(20, queueComparator());
-
-    final Core core1 = new Core("1");
-    final Core core2 = new Core("2");
+    ThreadGroup threadGroup = new ThreadGroup("CPU");
+    final Core core1 = new Core(1, threadGroup);
+    final Core core2 = new Core( 2, threadGroup);
 
     Resources sharedResources = new Resources();
 
@@ -18,22 +18,23 @@ public class Scheduler {
      */
     public void run() {
         System.out.println("Started");
+        boolean b = false;
+
         while (processQueue.size() > 0){
-            Process process = processQueue.poll();
+            Process p1 = processQueue.poll();
+
+
             if (core1.isIdle()) {
-                if(process.willModify() && processQueue.peek() != null){
-                    processQueue.peek().setState(Process.State.BLOCKED);
-                }
-                core1.runProcess(process, sharedResources);
+                core1.runProcess(p1, sharedResources);
             } else {
                 if (core2.isIdle()) {
-                    if(process.willModify() && processQueue.peek() != null){
+                    if(p1.willModify() && processQueue.peek() != null){
                         processQueue.peek().setState(Process.State.BLOCKED);
                     }
-                    core2.runProcess(process, sharedResources);
+                    core2.runProcess(p1, sharedResources);
                 } else {
-                    process.setState(Process.State.BLOCKED);
-                    processQueue.add(process);
+                    p1.setState(Process.State.BLOCKED);
+                    processQueue.add(p1);
                 }
             }
         }
