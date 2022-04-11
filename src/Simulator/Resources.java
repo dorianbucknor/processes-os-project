@@ -1,4 +1,4 @@
-package OperatingSystems;
+package Simulator;
 
 import java.util.HashMap;
 
@@ -54,10 +54,20 @@ public class Resources {
      * Removes a record from resources
      * @param id identifier of record to remove
      */
-    public void remove(int id){
+    public Record remove(int id){
         if(resources.size() > 0){
            resources.replace(id, 0);
+           return new Record(0, id);
+        }else{
+            return null;
         }
     }
 
+    @Override
+    public String toString() {
+        return "Resources{" +
+                resources.toString()
+                +
+                '}';
+    }
 }

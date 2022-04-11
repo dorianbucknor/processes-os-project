@@ -1,4 +1,4 @@
-package OperatingSystems;
+package Simulator;
 
 import java.util.Random;
 import java.time.LocalTime;
@@ -36,7 +36,6 @@ public class Process {
         this.startTime = LocalTime.now(); // sets start time to system time when process object was created
         arrivalTime = getRandomInt(0, 29); // sets a random arrival time between and inclusive of 0 and 29
         state = State.NEW;
-        System.out.println(this.toString());
     }
 
     /**
@@ -56,6 +55,7 @@ public class Process {
     public void endProcess(){
         task = Task.NONE;
         state = State.TERMINATED;
+        endTime = LocalTime.now();
     }
 
     /**
@@ -69,25 +69,29 @@ public class Process {
             case 4 -> task = Task.CALCULATE;
         }
         state = State.READY;
+        System.out.println(task.toString());
     }
 
     /**
      * Task that adds a new resource to resources
      * @param resources the shared resources to complete the task on
      */
-    public synchronized void AddRecord(Resources resources) {
-        state = State.READY;
-        resources.add(new Record(getRandomInt(1, 20), getRandomInt(1, 100))); //gets a random resource and
-        // changes its value to an integer between and inclusive of 1 and 100
+    public void AddRecord(Resources resources) {
+        Record record = new Record(getRandomInt(1, 20), getRandomInt(1, 100)); //gets a random resource
+        System.out.println("Record Update:\n Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
+        resources.add(record); // changes its value to an integer between and inclusive of 1 and 100
+        System.out.println("Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
     }
 
     /**
      * Task that removes a resource from shared resources by setting its value to 0
      * @param resources the shared resources to complete the task on
      */
-    public synchronized void delete(Resources resources) {
-        task = Task.REMOVE;//set the current task process is performing
-        resources.remove(getRandomInt(1, 20)); //gets a random resource
+    public void delete(Resources resources) {
+        Record record = resources.getRecord(getRandomInt(1,20));
+        System.out.println("Record Update:\n Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
+        resources.remove(record.getId());
+        System.out.println("Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
     }
 
     /**
@@ -95,8 +99,7 @@ public class Process {
      * @param resources the shared resources to complete the task on
      */
     public void retrieve(Resources resources) {
-        task = Task.RETRIEVE;//set the current task process is performing
-        Record record = resources.getRecord(getRandomInt(1, 20)); //gets a random resource
+        Record record = resources.getRecord(getRandomInt(1,20));
         System.out.println("Resource Id: " + record.getId() + " - Resource Data: " + record.getData());
         //output that resources data
     }
@@ -106,7 +109,6 @@ public class Process {
      * @param resources the shared resources to complete the task on
      */
     public void calculate(Resources resources) {
-        task = Task.CALCULATE; //set the current task process is performing
         //this is the same as looping through the list of data values and adding them to a variable and then
         // printing the total
         resources.getResources().values().stream().reduce(Integer::sum).ifPresent(total -> System.out.println(
@@ -115,8 +117,7 @@ public class Process {
     }
 
     /**
-     * Executes given task
-     * @param resources the shared resources to complete the task on
+     * Executes given task on current record
      */
     public void executeTask(Resources resources){
         state = State.RUNNING;
@@ -128,8 +129,8 @@ public class Process {
             case REMOVE -> delete(resources);
             case CALCULATE -> calculate(resources);
         }
-        task = Task.NONE;
-        state = State.TERMINATED;
+        //task = Task.NONE;
+        //state = State.TERMINATED;
         System.out.println(this.toString());
     }
 

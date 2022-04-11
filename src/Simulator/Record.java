@@ -1,9 +1,10 @@
-package OperatingSystems;
+package Simulator;
 
 
 public class Record {
     private int data;
     private int id;
+
 
     /**
      * Creates a new resource
@@ -14,6 +15,8 @@ public class Record {
         this.data = data;
         this.id = id;
     }
+
+
 
     //Getters and Setters
     public void setData(int data) {

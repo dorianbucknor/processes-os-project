@@ -1,5 +1,5 @@
-import OperatingSystems.Process;
-import OperatingSystems.Scheduler;
+import Simulator.Process;
+import Simulator.Scheduler;
 
 public class Main {
 
@@ -12,6 +12,8 @@ public class Main {
             process.assignTask();
             scheduler.addProcess(process);
         }
+
+        System.out.println(scheduler.toString() +"\n\n");
 
         scheduler.run();
     }
