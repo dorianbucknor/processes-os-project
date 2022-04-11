@@ -18,27 +18,33 @@ public class Scheduler {
      */
     public void run() {
         System.out.println("Started");
-        boolean b = false;
+        int elapsedTime = 0;
 
-        while (processQueue.size() > 0){
-            Process p1 = processQueue.poll();
+        while (processQueue.size() > 0) {
+            Process process = processQueue.poll();
 
-
-            if (core1.isIdle()) {
-                core1.runProcess(p1, sharedResources);
+            if (core1.blockAll() || core2.blockAll()) {
+                process.setState(Process.State.BLOCKED);
+                process.setBlockedTime(elapsedTime);
+                System.out.println("\tProcess Blocked\n\t\t " + process);
+                processQueue.add(process);
             } else {
-                if (core2.isIdle()) {
-                    if(p1.willModify() && processQueue.peek() != null){
-                        processQueue.peek().setState(Process.State.BLOCKED);
-                    }
-                    core2.runProcess(p1, sharedResources);
+                if (core1.isIdle()) {
+                    core1.runProcess(process, sharedResources);
+                    elapsedTime += process.getBurstTime();
                 } else {
-                    p1.setState(Process.State.BLOCKED);
-                    processQueue.add(p1);
+                    if (core2.isIdle()) {
+                        core2.runProcess(process, sharedResources);
+                        elapsedTime += process.getBurstTime();
+                    } else {
+                        process.setState(Process.State.BLOCKED);
+                        process.setBlockedTime(elapsedTime);
+                        /*System.out.println("\tProcess Blocked\n\t\t " + process.toString());*/
+                        processQueue.add(process);
+                    }
                 }
             }
         }
-
         System.out.println("Done");
     }
 
